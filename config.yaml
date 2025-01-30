@@ -1,0 +1,10 @@
+# General settings
+project_name: NMC_spatial_analysis
+version: 0.1
+
+# Directory paths
+raw_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/raw'
+metadata_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/metadata'
+preprocessed_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/preprocessed'
+results_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results'
+
