@@ -11,15 +11,18 @@ library(ggplot2)
 library(survival)
 library(survminer)
 ```
+
 ```{r}
-#set heatmap main coloring
-main_col_fun = colorRamp2(
-  c(-1.5,0,1.5), 
-  c("#2166ac", "grey", "#b2182b"))
 
 main_col_fun = colorRamp2(
   c(-1.5,0,1.5), 
   c("#2166ac", "#f7f7f7", "#b2182b"))
+
+
+#make cells_split factors
+cells_split <- c("Suppressive", "Suppressive", "Effector", "Suppressive/Effector", "Effector", "Effector", "Suppressive/Effector", "Effector", "Effector", "Suppressive", "Effector", "Effector")
+cells_split <- factor(cells_split, levels = c("Suppressive", "Suppressive/Effector", "Effector"))
+
 
 ```
 
@@ -27,52 +30,333 @@ main_col_fun = colorRamp2(
 
 dir <- "~/Desktop/PhD/NMC/results"
 
-infiltrated_cells <- read.csv(file.path(dir, "NMC_cozi_infiltration.csv")) %>%
+#read interaction file
+interaction_tumor_to <- read.csv(file.path(dir, "Tumor_cells_interaction_to.csv"))
+
+interaction_tumor_from <- read.csv(file.path(dir, "Tumor_cells_interaction_from.csv"))
+
+interaction_MDSCs_from <- read.csv(file.path(dir, "MDSCs_interaction_from.csv"))
+
+interaction_t_to <- read.csv(file.path(dir, "CD8+_T_cells_interaction_to.csv"))
+
+interaction_t_from <- read.csv(file.path(dir, "CD8+_T_cells_interaction_from.csv"))
+#read infiltration
+
+infiltration_cozi <- read.csv(file.path(dir, "NMC_cozi_infiltration.csv")) %>%
   mutate("infiltration" = cond_cells_percentage) %>%
   select(!cond_cells_percentage)
 
-#read interaction file
-interaction_immune <- read.csv(file.path(dir, "NMC_immunetumor_interaction.csv"))
+median_infiltration_cozi <- infiltration_cozi %>%
+  group_by(cell_type) %>%
+  summarise("median_infiltration" = mean(infiltration, na.rm = TRUE)) %>%
+  arrange(desc(median_infiltration))
 
-interaction_tumor <- read.csv(file.path(dir, "NMC_tumorimmune_interaction.csv"))
+infiltration_me <- read.csv(file.path(dir, "NMC_infiltration_percentage.csv"))
 
-infiltration_percentage <- read.csv(file.path(dir, "NMC_infiltration_percentage.csv"))
+median_infiltration_me <- infiltration_me %>%
+  group_by(cell_type) %>%
+  summarise("median_infiltration" = mean(percentage, na.rm = TRUE)) %>%
+  arrange(desc(median_infiltration))
 
-interaction_MDSCs <- read.csv(file.path(dir, "NMC_MDSCsimmune_interaction.csv"))
+survival <- read.csv(file.path(dir, "NMC_survival_time.csv")) %>%
+  #group into less than 7, 7-14, and 14+
+  mutate(survival_group = case_when(
+    survival_time_months < 7 ~ "< 7 months",
+    survival_time_months >= 7 & survival_time_months < 14 ~ "7-14 months",
+    TRUE ~ "14+ months"
+  )) %>%
+  arrange(patient_exp)
+
+```
+
+Infiltration
+
+```{r}
+
+infiltration_me_mat <- infiltration_me %>%
+  select(!c(total_cells, infiltration, X)) %>%
+  arrange(patient_exp, factor(cell_type, levels = median_infiltration_me$cell_type)) %>%
+  pivot_wider(names_from = "patient_exp", values_from = "percentage") %>%
+  column_to_rownames(var = "cell_type")
+
+
+infiltration_me_mat = infiltration_me_mat[, c(13, 17, 2, 5, 6, 12, 3, 10, 16, 14, 4, 19, 18, 8, 7, 9, 15, 1, 11)] %>% 
+  as.matrix()
+
+infiltration_cozi_mat <- infiltration_cozi %>%
+  arrange(patient_exp, factor(cell_type, levels = median_infiltration_cozi$cell_type)) %>%
+  pivot_wider(names_from = "patient_exp", values_from = "infiltration") %>%
+  column_to_rownames(var = "cell_type") %>%
+  as.matrix()
+
+main_col_fun = colorRamp2(
+  c(0.25, 0.5, 0.75, 1), 
+  c("#2166ac", "#f7f7f7", "#ef8a62", "#b2182b")
+)
+
+row_ha = rowAnnotation(
+  "median_infiltration" = median_infiltration_cozi$median_infiltration,
+   annotation_name_gp = gpar(fontsize = 8),
+  annotation_name_rot = 45,
+  show_annotation_name = FALSE
+  )
+
+Heatmap(infiltration_cozi_mat,
+        name = "Infiltration",
+        column_names_rot = 45,
+        right_annotation = row_ha,
+        row_split = cells_split,
+        border = TRUE,
+        heatmap_legend_param = list(title = "Infiltration"),
+        cluster_rows  = FALSE,
+        cluster_columns = FALSE,
+        column_title = "Cell Types",
+        row_title = "Samples",
+        row_names_side = "left",
+        column_names_gp = gpar(fontsize = 8),
+        row_names_gp = gpar(fontsize = 6),
+        column_title_gp = gpar(fontsize = 11, fontface = "bold"),
+        row_title_gp = gpar(fontsize = 11, fontface = "bold"),
+        na_col = "white",  ## background color for NA
+        cell_fun = function(j, i, x, y, width, height, fill) {
+            if (is.na(infiltration_cozi_mat[i, j])) {
+                # Draw smaller X
+                scale_factor <- 0.3  
+                w2 <- width * scale_factor
+                h2 <- height * scale_factor
+                grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 1.5))
+                grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 1.5))
+            }
+        }
+)
+
+row_ha = rowAnnotation(
+  "median_infiltration" = median_infiltration_me$median_infiltration,
+  annotation_name_gp = gpar(fontsize = 8),
+  annotation_name_rot = 45,
+  show_annotation_name = FALSE
+)
+
+Heatmap(infiltration_me_mat,
+        name = "Infiltration",
+        column_names_rot = 45,
+        right_annotation = row_ha,
+        row_split = cells_split,
+        border = TRUE,
+        heatmap_legend_param = list(title = "Infiltration"),
+        cluster_rows  = FALSE,
+        cluster_columns = FALSE,
+        column_title = "Cell Types",
+        row_title = "Samples",
+        row_names_side = "left",
+        column_names_gp = gpar(fontsize = 8),
+        row_names_gp = gpar(fontsize = 8),
+        column_title_gp = gpar(fontsize = 11, fontface = "bold"),
+        row_title_gp = gpar(fontsize = 11, fontface = "bold"),
+        na_col = "white",  ## background color for NA
+        cell_fun = function(j, i, x, y, width, height, fill) {
+            if (is.na(infiltration_me_mat[i, j])) {
+                # Draw smaller X
+                scale_factor <- 0.3  
+                w2 <- width * scale_factor
+                h2 <- height * scale_factor
+                grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 1.5))
+                grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 1.5))
+            }
+        }
+)
+```
+
+```{r}
+
+interaction_combined <- interaction_t_to %>%
+  rbind(interaction_t_from) %>%
+  arrange(patient_exp, factor(cell_type, levels = median_infiltration_me$cell_type)) %>%
+  group_by(patient_exp) %>%
+  mutate("zscore" = scale(zscore)) %>%
+  ungroup() %>%
+  filter(cell_type %in% c("MDSCs")) %>%
+  select(!cell_type)%>%
+  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
+  column_to_rownames(var = "cell_pair")
+
+interaction_combined = interaction_combined[, c(13, 17, 2, 5, 6, 12, 3, 10, 16, 14, 4, 19, 18, 8, 7, 9, 15, 1, 11)] %>% 
+  as.matrix()
+  
+
+jpeg(filename = "~/Desktop/heatmap_output_onlyMDSCs.jpeg", width = 900, height = 250, res = 150)
+
+Heatmap(interaction_combined,
+        name = "Immune to Tumor Interaction (zscore)",
+        column_names_rot = 45,
+        col = main_col_fun,
+        heatmap_legend_param = list(title = "interaction"),
+        cluster_rows  = FALSE,
+        cluster_columns = FALSE,
+        column_title = "Cell Types",
+        row_title = "Samples",
+        row_names_side = "left",
+        column_names_gp = gpar(fontsize = 8),
+        row_names_gp = gpar(fontsize = 8),
+        na_col = "white",  ## background color for NA
+        cell_fun = function(j, i, x, y, width, height, fill) {
+            if (is.na(interaction_combined[i, j])) {
+                # Draw smaller X
+                scale_factor <- 0.3  
+                w2 <- width * scale_factor
+                h2 <- height * scale_factor
+                grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 1.5))
+                grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 1.5))
+            }
+        }
+)
+
+dev.off()
+
+
+```
+
+```{r}
+#interactions combined 
+
+interaction_combined <- interaction_tumor_to %>%
+  rbind(interaction_tumor_from) %>%
+  arrange(patient_exp, factor(cell_type, levels = median_infiltration_me$cell_type)) %>%
+  select(!cell_type) %>%
+  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
+  column_to_rownames(var = "cell_pair") %>%
+  as.matrix() %>%
+  scale()
+
+Heatmap(interaction_combined,
+        name = "Immune to Tumor Interaction (zscore)",
+        column_names_rot = 45,
+        col = main_col_fun,
+        heatmap_legend_param = list(title = "interaction"),
+        cluster_rows  = FALSE,
+        cluster_columns = TRUE,
+        column_title = "Cell Types",
+        row_title = "Samples",
+        row_names_side = "left",
+        column_names_gp = gpar(fontsize = 8),
+        row_names_gp = gpar(fontsize = 8),
+        na_col = "white",  ## background color for NA
+        cell_fun = function(j, i, x, y, width, height, fill) {
+            if (is.na(interaction_combined[i, j])) {
+                # Draw smaller X
+                scale_factor <- 0.3  
+                w2 <- width * scale_factor
+                h2 <- height * scale_factor
+                grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 1.5))
+                grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 1.5))
+            }
+        }
+)
+
+
+```
+
+
+```{r}
+interaction_tumor_to_mat <- interaction_tumor_to %>%
+  arrange(patient_exp, factor(cell_type, levels = median_infiltration_me$cell_type)) %>%
+  select(!cell_type) %>%
+  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
+  column_to_rownames(var = "cell_pair") %>%
+  as.matrix() %>%
+  scale()
+
+main_col_fun = colorRamp2(
+  c(-1.5,0,1.5), 
+  c("#2166ac", "grey", "#b2182b"))
+
+cell_drawer <- function(j, i, x, y, width, height, fill) {
+  score <- interaction_tumor_to_mat[i, j]
+  infiltration <- infiltration_me_mat[i, j]
+  
+  if (!is.na(score) && !is.na(infiltration)) {
+
+    # Bin into 4 levels
+    radius_factor <- case_when(
+      infiltration <= 0.25 ~ 0.2,
+      infiltration <= 0.5  ~ 0.3,
+      infiltration <= 0.75  ~ 0.45,
+      TRUE               ~ 0.65
+    )
+    
+    max_radius <- unit(0.035, "snpc")
+    radius <- radius_factor * convertUnit(max_radius, "npc", valueOnly = TRUE)
+
+    grid.circle(
+      x = x, y = y,
+      r = unit(radius, "npc"),
+      gp = gpar(fill = main_col_fun(score), col = NA)
+    )
+  } else {
+    scale_factor <- 0.3  
+    w2 <- width * scale_factor
+    h2 <- height * scale_factor
+    grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 2))
+    grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 2))
+    
+  }
+}
+
+
+ht = Heatmap(
+  matrix = interaction_tumor_to_mat,
+  name = "Interaction",
+  cell_fun = cell_drawer,
+  cluster_rows = FALSE,
+  cluster_columns = TRUE,
+  column_names_rot = 45,
+  row_names_side = "left",
+  rect_gp = gpar(col = "black", fill = NA),
+  col = main_col_fun,
+  column_title = "Cell Types",
+  row_title = "Samples",
+  column_names_gp = gpar(fontsize = 8),
+  row_names_gp = gpar(fontsize = 8),
+)
+
+circle_legend <- Legend(
+  title = "Infiltration",
+  type = "points",
+  pch = 21,
+  size = unit(c(0.15, 0.30, 0.45, 0.6), "cm"),
+  labels = c("0.25", "0.5", "0.75", "1"),
+  title_gp = gpar(fontsize = 10, fontface = "bold"),
+  labels_gp = gpar(fontsize = 10),
+  grid_height = unit(0.55, "cm"),
+  grid_width = unit(0.7, "cm")
+)
+
+jpeg(filename = "~/Desktop/heatmap_output.jpeg", width = 1200, height = 800, res = 150) 
+
+#Draw heatmap and legend together
+draw(ht, annotation_legend_list = list(circle_legend))
+
+dev.off()
+
 
 ```
 
 
 ```{r}
 #Build with complex heatmaps two heatmaps 
+#interaction_tumor_to_mat
+  
+jpeg(filename = "~/Desktop/heatmap_output_noinfiltration.jpeg", width = 1200, height = 800, res = 150)
 
-interaction_immune_mat <- interaction_immune %>%
-  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
-  column_to_rownames(var = "cell_type") %>%
-  as.matrix() %>% 
-  scale() %>%
-  t()
 
-interaction_tumor_mat <- interaction_tumor %>%
-  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
-  column_to_rownames(var = "cell_type") %>%
-  as.matrix() %>%
-  scale() %>%
-  t()
-
-interaction_MDSCs_mat <- interaction_MDSCs %>%
-  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
-  column_to_rownames(var = "cell_type") %>%
-  as.matrix() %>%
-  scale() %>%
-  t()
-
-Heatmap(interaction_immune_mat,
-        name = "Immune to Tumor Interaction (z_score)",
+Heatmap(interaction_tumor_to_mat,
+        name = "Immune to Tumor Interaction (zscore)",
         column_names_rot = 45,
+        col = main_col_fun,
+        row_split = cells_split,
+        border = TRUE,
         heatmap_legend_param = list(title = "interaction"),
         cluster_rows  = FALSE,
-        col = main_col_fun,
         cluster_columns = TRUE,
         column_title = "Cell Types",
         row_title = "Samples",
@@ -81,7 +365,7 @@ Heatmap(interaction_immune_mat,
         row_names_gp = gpar(fontsize = 8),
         na_col = "white",  ## background color for NA
         cell_fun = function(j, i, x, y, width, height, fill) {
-            if (is.na(interaction_immune_mat[i, j])) {
+            if (is.na(interaction_tumor_to_mat[i, j])) {
                 # Draw smaller X
                 scale_factor <- 0.3  
                 w2 <- width * scale_factor
@@ -92,97 +376,164 @@ Heatmap(interaction_immune_mat,
         }
 )
 
-#do same heatmap for tumor interaction
+dev.off()
 
-Heatmap(interaction_tumor_mat,
-        name = "Tumor to Immune Interaction (z_score)",
-        column_names_rot = 45,
-        heatmap_legend_param = list(title = "interaction"),
-        cluster_rows  = FALSE,
-        col = main_col_fun,
-        cluster_columns = TRUE,
-        column_title = "Cell Types",
-        row_title = "Samples",
-        row_names_side = "left",
-        column_names_gp = gpar(fontsize = 8),
-        row_names_gp = gpar(fontsize = 8),
-        na_col = "white",  ## background color for NA
-        cell_fun = function(j, i, x, y, width, height, fill) {
-            if (is.na(interaction_tumor_mat[i, j])) {
-                # Draw smaller X
-                scale_factor <- 0.3  
-                w2 <- width * scale_factor
-                h2 <- height * scale_factor
-                grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 1.5))
-                grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 1.5))
-            }
-        }
-)
+interaction_tumor_to_mat_clean <- interaction_tumor_to_mat
+interaction_tumor_to_mat_clean[is.na(interaction_tumor_to_mat_clean)] <- 0
 
 
-Heatmap(interaction_MDSCs_mat,
-        name = "Immune to Tumor Interaction (z_score)",
-        column_names_rot = 45,
-        heatmap_legend_param = list(title = "interaction"),
-        cluster_rows  = FALSE,
-        col = main_col_fun,
-        cluster_columns = TRUE,
-        column_title = "Cell Types",
-        row_title = "Samples",
-        row_names_side = "left",
-        column_names_gp = gpar(fontsize = 8),
-        row_names_gp = gpar(fontsize = 8),
-        na_col = "white",  ## background color for NA
-        cell_fun = function(j, i, x, y, width, height, fill) {
-            if (is.na(interaction_MDSCs_mat[i, j])) {
-                # Draw smaller X
-                scale_factor <- 0.3  
-                w2 <- width * scale_factor
-                h2 <- height * scale_factor
-                grid.lines(x = c(x - w2, x + w2), y = c(y - h2, y + h2), gp = gpar(col = "black", lwd = 1.5))
-                grid.lines(x = c(x - w2, x + w2), y = c(y + h2, y - h2), gp = gpar(col = "black", lwd = 1.5))
-            }
-        }
-)
+pca_res <- prcomp(interaction_tumor_to_mat_clean, center = FALSE, scale. = FALSE)
+
+# Summary of PCA (optional)
+summary(pca_res)
+
+# Get PCA scores (coordinates of samples in PC space)
+pca_scores <- pca_res$x
+
+pca_df <- data.frame(PC1 = pca_scores[,1], PC2 = pca_scores[,2])
+
+# Plot
+ggplot(pca_df, aes(x = PC1, y = PC2)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "PCA of Samples", x = "PC1", y = "PC2")
+
+kmeans_res <- kmeans(pca_scores[, 1:5], centers = 2)
+
+# Add cluster assignment to PCA data frame
+pca_df$cluster <- as.factor(kmeans_res$cluster)
+
+# Plot with cluster labels
+ggplot(pca_df, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "PCA + K-means Clustering (k=2)", x = "PC1", y = "PC2")
 
 ```
 ```{r}
+
+inte
+
+
+```
+
+
+```{r}
 #Let's see if MDSCs interaction is correlated negatively with CD8+_T_cells
 
-interaction_cor = interaction_immune %>%
+interaction_cor = interaction_tumor_to %>%
   group_by(patient_exp) %>%
   mutate("zscore" = scale(zscore)) %>%
   #make interactions na 0
-  mutate(zscore = ifelse(is.na(zscore), 0, zscore)) %>%
   ungroup() %>%
   #fill NA with 0
-  filter(cell_type %in% c("MDSCs", "CD8+_T_cells", "M1_M2_macrophages","NK_cells", "M1_macrophages", "M2_macrophages"))
+  filter(cell_type %in% c("MDSCs", "CD8+_T_cells")) %>%
+  select(!cell_type)
+
+#pivot the data wider for it first
+interaction_cor_wide <- interaction_cor %>%
+  pivot_wider(names_from = "cell_pair", values_from = "zscore")
 
 #let's do a ggplot as boxplot to compare
-ggplot(interaction_cor, aes(x = cell_type, y = zscore, fill = cell_type)) +
+ggplot(interaction_cor, aes(x = cell_pair, y = zscore, fill = cell_pair)) +
   geom_boxplot() +
   geom_jitter() + 
-  labs(title = "Interaction between MDSCs and CD8+ T cells",
+  labs(title = "MDSCs interaction with Tumor cells vs CD8+ T cells interaction with Tumor cells",
        x = "Cell Type",
-       y = "Z-score") +
+       y = "Interaction Score") +
+  theme_minimal() +
+  stat_compare_means(method = "t.test", label = "p.format", label.y = 2.5)
+
+ggplot(interaction_cor_wide, aes(x = `CD8+_T_cells-Tumor_cells`
+, y = `MDSCs-Tumor_cells`)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Correlation between MDSCs and CD8+ T cells interactions to Tumor Cells",
+       x = "MDSCs Interaction",
+       y = "CD8+ T cells Interaction") +
+  theme_minimal() +
+  stat_cor(method = "pearson", label.x.npc = "left", label.y.npc = "bottom")
+
+```
+
+
+```{r}
+#let's do a ggplot with linear regression
+
+
+
+interaction_cor = interaction_tumor_to %>%
+  group_by(patient_exp) %>%
+  mutate("zscore" = scale(zscore)) %>%
+  #make interactions na 0
+  ungroup() %>%
+  #fill NA with 0
+  filter(cell_type %in% c("M2_macrophages", "CD8+_T_cells")) %>%
+  select(!cell_type)
+
+
+#pivot the data wider for it first
+interaction_cor_wide <- interaction_cor %>%
+  pivot_wider(names_from = "cell_pair", values_from = "zscore")
+
+#let's do a ggplot as boxplot to compare
+ggplot(interaction_cor, aes(x = cell_pair, y = zscore, fill = cell_pair)) +
+  geom_boxplot() +
+  geom_jitter() + 
+  labs(title = "M2 macrophages interaction with Tumor cells vs CD8+ T cells interaction with Tumor cells",
+       x = "Cell Type",
+       y = "Interaction Score") +
   theme_minimal() +
   stat_compare_means(method = "t.test", label = "p.format", label.y = 2.5)
 
 
 #let's do a ggplot with linear regression
-#pivot the data wider for it first
-interaction_cor_wide <- interaction_cor %>%
-  pivot_wider(names_from = "cell_type", values_from = "zscore")
-ggplot(interaction_cor_wide, aes(x = MDSCs, y = `CD8+_T_cells`)) +
+
+
+ggplot(interaction_cor_wide, aes(x = `M2_macrophages-Tumor_cells`, y = `CD8+_T_cells-Tumor_cells`)) +
   geom_point() +
   geom_smooth(method = "lm", color = "blue") +
-  labs(title = "Correlation between MDSCs and CD8+ T cells",
-       x = "MDSCs Interaction (z-score)",
-       y = "CD8+ T cells Interaction (z-score)") +
+  labs(title = "Correlation between M2 macrophages and CD8+ T cells interactions to Tumor Cells",
+       x = "MDSCs Interaction",
+       y = "CD8+ T cells Interaction") +
   theme_minimal() +
-  stat_cor(method = "pearson", label.x.npc = "left", label.y.npc = "top")
+  stat_cor(method = "pearson", label.x.npc = "left", label.y.npc = "bottom")
 
 ```
+
+
+
+```{r}
+#what are the cells MDSCs react with the most
+
+interaction_MDSCs_cor <- interaction_MDSCs %>%
+  select(!cell_pair) %>%
+  group_by(patient_exp) %>%
+  mutate("zscore" = scale(zscore)) %>%
+  ungroup() 
+
+interaction_MDSCs_cor$cell_type <- reorder(interaction_MDSCs_cor$cell_type, -interaction_MDSCs_cor$zscore, FUN = function(x) median(x, na.rm = TRUE))
+
+
+ggplot(interaction_MDSCs_cor, aes(x = `cell_type`, y = zscore, fill = `cell_type`)) +
+  #make x axis labels 45 degrees
+  geom_boxplot() +
+  geom_jitter(width = 0.2, alpha = 0.6, size = 0.5) + 
+  labs(title = "MDSCs interaction scores with other immune cells",
+       x = "Cell Type",
+       y = "Interaction score (z score)") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.title.x = element_text(size = 11),
+    axis.title.y = element_text(size = 11),
+    legend.position = "none"
+  ) +
+   stat_compare_means()
+
+```
+
+
 ```{r}
 
 interaction_cor = interaction_immune %>%
@@ -208,6 +559,69 @@ ggplot(interaction_cor, aes(x = group, y = zscore, fill = group)) +
        y = "Z-score") +
   theme_minimal() +
   stat_compare_means(method = "t.test", label = "p.format", label.y = 2.5)
+
+```
+
+```{r}
+
+interaction_tumor_to_survival <- interaction_tumor_to %>%
+  group_by(patient_exp) %>%
+  mutate("zscore" = scale(zscore)) %>%
+  ungroup()
+
+sd = sd(interaction_tumor_to_survival$zscore, na.rm = TRUE)
+mean = mean(interaction_tumor_to_survival$zscore, na.rm = TRUE)
+
+interaction_tumor_to_survival$patient_exp <- gsub("_[^_]+$", "", interaction_tumor_to_survival$patient_exp)
+
+interaction_tumor_to_survival <- interaction_tumor_to_survival %>%
+  filter(cell_type %in% c("MDSCs")) %>%
+  select(!cell_type) %>%
+  group_by(patient_exp) %>%
+  summarise("zscore" = mean(zscore, na.rm = TRUE)) %>%
+  mutate(zscore_group = case_when(zscore > mean + sd ~ "High MDSCs interaction", 
+                                  zscore < mean + sd ~ "Low MDSCs interaction",
+                                  is.na(zscore) ~ "Low MDSCs interaction"))
+
+  
+survival_copy <- survival
+survival_copy$patient_exp <- gsub("_[^_]+$", "", survival_copy$patient_exp) 
+survival_copy <- survival_copy %>%
+  filter(!duplicated(patient_exp))
+
+interaction_tumor_to_survival <- interaction_tumor_to_survival %>%
+  left_join(survival_copy, by = "patient_exp") %>%
+  select(patient_exp, zscore_group, survival_time_months)
+
+#Make survival plots
+interaction_tumor_to_survival$zscore_group <- factor(interaction_tumor_to_survival$zscore_group)
+# Add status = 1 for "event occurred" (adjust if you have true censoring info)
+interaction_tumor_to_survival$status <- 1
+
+#remove patient 1
+#interaction_tumor_to_survival <- interaction_tumor_to_survival %>%
+ # filter(patient_exp != "NMC_1")
+# Create survival object
+surv_obj <- Surv(time = interaction_tumor_to_survival$survival_time_months, event = interaction_tumor_to_survival$status)
+
+# Fit survival curve
+fit <- survfit(surv_obj ~ zscore_group, data = interaction_tumor_to_survival)
+
+# Plot
+ggsurvplot(
+  fit,
+  data = interaction_tumor_to_survival,
+  pval = TRUE,                 # shows p-value from log-rank test
+  pval.coord = c(10, 0.95),
+  risk.table = FALSE,          # shows number at risk
+  conf.int = FALSE,            # show confidence interval
+  palette = c("#E7B800", "#2E9FDF"), # color customization
+  title = "Survival by MDSC Interaction Group",
+  xlab = "Time (months)",
+  ylab = "Survival Probability",
+  legend.labs = c("High MDSCs interaction", "Low MDSCs Interaction")
+)
+
 
 ```
 
