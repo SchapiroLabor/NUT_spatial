@@ -87,9 +87,10 @@ infiltration_me_mat <- infiltration_me %>%
   as.matrix()
 
 
+
 main_col_fun = colorRamp2(
   c(0.25, 0.5, 1), 
-  c("#0055FF", "#FFCC99", "#FF0000FF")
+  c("#0055FF", "#f7f7f7", "#FF0000FF")
 )
 
 
@@ -155,6 +156,7 @@ interaction_tumor_to_mat <- interaction_tumor_to %>%
   column_to_rownames(var = "cell_pair") %>%
   as.matrix() %>%
   scale()
+
 
 ```
 
@@ -394,6 +396,7 @@ interaction_t_combined_mat <- interaction_t_combined %>%
 
 #Select only rownames MDSCs-CD8+_T_cells and CD8+_T_cells-MDSCs
 interaction_t_combined_mat_select <- interaction_t_combined_mat[c("MDSCs-CD8+_T_cells", "CD8+_T_cells-MDSCs"), ]
+
 #save heatmap
 svglite::svglite(filename = "~/Desktop/heatmap_onlyMDSCS-T.svg", width = 15, height = 3)
 
@@ -478,9 +481,6 @@ interaction_t_to_survival$zscore_group <- factor(interaction_t_to_survival$zscor
 # Add status = 1 for "event occurred" (adjust if you have true censoring info)
 interaction_t_to_survival$status <- 1
 
-#remove patient NMC_1\
-
-ggsurvevents()
 
 
 #remove patient 1
