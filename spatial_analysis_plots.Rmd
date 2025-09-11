@@ -14,21 +14,6 @@ library(survminer)
 
 ```{r}
 
-main_col_fun = colorRamp2(
-  c(-1.5,0,1.5), 
-  c("#0055FF", "#f7f7f7", "#FF0000FF"))
-
-
-#make cells_split factors
-cells_split <- c("Suppressive", "Suppressive", "Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Effector", "Suppressive", "Suppressive/Effector", "Effector", "Effector", "Suppressive/Effector")
-
-cells_split <- factor(cells_split, levels = c("Suppressive", "Suppressive/Effector", "Effector"))
-
-infiltration_me_mat
-```
-
-```{r}
-
 dir <- "~/Desktop/PhD/NMC/results"
 
 #read interaction file
@@ -68,7 +53,18 @@ tumor_area <- read.csv(file.path(dir, "tumor_area.csv")) %>%
   mutate("tumor_area" = log10(tumor_area))
 ```
 
-Infiltration
+
+
+```{r}
+
+#make cells_split factors
+cells_split <- c("Suppressive", "Suppressive", "Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Effector", "Suppressive", "Effector", "Effector", "Suppressive/Effector")
+
+cells_split <- factor(cells_split, levels = c("Suppressive", "Suppressive/Effector", "Effector"))
+
+
+```
+
 
 ```{r}
 #Extract the patient numbers between the two underscores from infiltration_me_mat$patient_ID
@@ -85,6 +81,9 @@ infiltration_me_mat <- infiltration_me %>%
   pivot_wider(names_from = "patient_exp", values_from = "percentage") %>%
   column_to_rownames(var = "cell_type") %>%
   as.matrix()
+
+#give me the order of columns here
+column_order <- colnames(infiltration_me_mat)
 
 
 
@@ -141,9 +140,10 @@ interaction_tumor_to <- interaction_tumor_to %>%
 
 cell_types <- c(
   "MDSCs", "M2_macrophages", "M1_macrophages", "M1_M2_macrophages",
-  "DCs", "Granulocytes", "B_cells", "CD8+_T_cells", "Treg_T_cells",
-  "Mast_cells", "NK_cells", "CD4+_T_cells", "Plasma_cells"
+  "DCs", "Granulocytes", "B_cells", "Mast_cells", "CD8+_T_cells",
+  "Treg_T_cells", "NK_cells", "CD4+_T_cells", "Plasma_cells"
 )
+
 
 cell_types_order <- paste0(cell_types, "-Tumor_cells") 
 
@@ -154,10 +154,13 @@ interaction_tumor_to_mat <- interaction_tumor_to %>%
   pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
   arrange(factor(cell_pair, levels = cell_types_order)) %>%
   column_to_rownames(var = "cell_pair") %>%
-  as.matrix() %>%
+  as.matrix() %>% 
   scale()
 
+# use the column_order for interaction_tumor_to_mat
+interaction_tumor_to_mat <- interaction_tumor_to_mat[, column_order]
 
+cells_split <- c("Suppressive", "Suppressive", "Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Effector", "Suppressive", "Effector", "Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector", "Suppressive/Effector")
 ```
 
 
@@ -228,7 +231,7 @@ a = ggplot(interaction_cor, aes(x = cell_pair, y = zscore, fill = cell_pair)) +
 #Let's save the ggplot
 
 ggsave(
-  filename = paste0("~/Desktop/interaction_plot_", choice, ".svg"),
+  filename = paste0("~/Desktop/interaction_plot_all_box", choice, ".svg"),
   plot = a,
   width = 10,
   height = 6,
@@ -241,24 +244,6 @@ ggsave(
 
 ```
 
-```{r}
-interaction_cor_subset <- interaction_cor %>%
-  filter(cell_pair %in% c("MDSCs-Tumor_cells", "CD8+_T_cells-Tumor_cells", "Treg_T_cells-Tumor_cells", "M2_macrophages-Tumor_cells", "M1_macrophages-Tumor_cells", "NK_cells-Tumor_cells", "CD4+_T_cells-Tumor_cells"))
-
-ggplot(interaction_cor_subset, aes(x = cell_pair, y = zscore, fill = cell_pair)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, alpha = 0.5,) +
-  labs(
-    title = "MDSCs interaction with Tumor cells vs CD8+ T cells interaction with Tumor cells",
-    x = "Cell Pair",
-    y = "Interaction Score"
-  ) +
-  theme_minimal() +
-  stat_compare_means(method = "t.test", label = "p.format", label.y = 2, label.x = 5) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  #hide legend
-  theme(legend.position = "none")
-```
 
 ```{r}
 interaction_cor_subset <- interaction_cor %>%
@@ -311,19 +296,23 @@ interaction_cor = interaction_tumor_to %>%
   #filter(cell_type %in% c("MDSCs", "CD8+_T_cells", "M2_macrophages")) %>%
   select(!cell_type)
 
+#order interaction_cor cell_pair by decreasing order of median 
+
 #pivot the data wider for it first
 interaction_cor_wide <- interaction_cor %>%
   pivot_wider(names_from = "cell_pair", values_from = "zscore")
 
 #let's do a ggplot as boxplot to compare
-ggplot(interaction_cor, aes(x = cell_pair, y = zscore, fill = cell_pair)) +
+all_box = ggplot(interaction_cor, aes(x = fct_reorder(cell_pair, zscore, .fun = median, .desc = TRUE), y = zscore, fill = cell_pair)) +
   geom_boxplot() +
   geom_jitter() + 
-  labs(title = "MDSCs interaction with Tumor cells vs CD8+ T cells interaction with Tumor cells",
+  labs(title = "Different cells interaction with Tumor_cells",
        x = "Cell Type",
        y = "Interaction Score") +
   theme_minimal() +
   stat_compare_means(method = "t.test", label = "p.format", label.y = 2.5)
+
+#save it 
 
 c = ggplot(interaction_cor_wide, aes(x = `CD8+_T_cells-Tumor_cells`
 , y = `MDSCs-Tumor_cells`)) +
