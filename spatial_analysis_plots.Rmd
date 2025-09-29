@@ -384,7 +384,7 @@ interaction_t_combined_mat <- interaction_t_combined %>%
   scale()
 
 #Select only rownames MDSCs-CD8+_T_cells and CD8+_T_cells-MDSCs
-interaction_t_combined_mat_select <- interaction_t_combined_mat[c("MDSCs-CD8+_T_cells", "CD8+_T_cells-MDSCs"), ]
+interaction_t_combined_mat_select <- interaction_t_combined_mat[c("MDSCs-CD8+_T_cells", "CD8+_T_cells-MDSCs"), ] 
 
 #save heatmap
 svglite::svglite(filename = "~/Desktop/heatmap_onlyMDSCS-T.svg", width = 15, height = 3)
@@ -411,6 +411,57 @@ draw(ht)
 dev.off()
 
 ```
+
+```{r}
+interaction_t_combined <- interaction_t_to %>%
+  rbind(interaction_t_from) %>%
+  mutate(patient_nb = str_extract(patient_exp, "(?<=_)[^_]+(?=_)")) %>%
+  #make column numeric
+  mutate(patient_nb = as.numeric(patient_nb))
+
+
+interaction_t_combined_mat <- interaction_t_combined %>%
+  arrange(patient_nb) %>%
+  select(!cell_type) %>%
+  select(!patient_nb) %>%
+  pivot_wider(names_from = "patient_exp", values_from = "zscore") %>%
+  arrange(factor(cell_pair, levels = cell_types_order)) %>%
+  column_to_rownames(var = "cell_pair") %>%
+  as.matrix() 
+
+#Select only rownames MDSCs-CD8+_T_cells and CD8+_T_cells-MDSCs
+interaction_t_combined_mat_select <- interaction_t_combined_mat[c("MDSCs-CD8+_T_cells", "CD8+_T_cells-MDSCs"), ] %>%
+  scale()
+
+#save heatmap
+svglite::svglite(filename = "~/Desktop/heatmap_onlyMDSCS-T.svg", width = 15, height = 3)
+
+ht = Heatmap(interaction_t_combined_mat_select,
+        name = "Interaction of CD8+_T_cells & MDSCs",
+        column_names_rot = 45,
+        col = main_col_fun,
+        border = TRUE,
+        heatmap_legend_param = list(title = "interaction"),
+        cluster_rows  = FALSE,
+        cluster_columns = FALSE,
+        column_title = "Samples",
+        row_title = "Cell Pairs",
+        row_names_side = "left",
+        column_names_gp = gpar(fontsize = 8),
+        row_names_gp = gpar(fontsize = 8),
+        column_title_gp = gpar(fontsize = 11, fontface = "bold"),
+        row_title_gp = gpar(fontsize = 11, fontface = "bold")
+)
+
+draw(ht)
+
+dev.off()
+
+
+
+```
+
+
 ```{r}
  
 #Select only rownames MDSCs-CD8+_T_cells and CD8+_T_cells-MDSCs

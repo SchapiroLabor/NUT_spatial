@@ -1,2 +1,6 @@
 **/*_env/
+renv/library/
+renv/staging/
+.Rhistory
+.RData
 
