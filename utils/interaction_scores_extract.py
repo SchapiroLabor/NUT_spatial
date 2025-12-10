@@ -8,9 +8,6 @@ import yaml
 from pathlib import Path
 from collections import OrderedDict
 
-
-
-
 def extract_interaction(adata, selected_cell_type, excluded_cell_types = None, interaction_label = 'scimap_delaunay_conditional_zscore', direction = "from", cells_threshold = 10, save_data = True, results_dir = None):
     """
     Extract interaction data for a specific cell type from the adata object.
