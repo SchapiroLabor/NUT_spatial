@@ -1,0 +1,12 @@
+[workspace]
+authors = ["jawadad <alaaedeenjawad@gmail.com>"]
+channels = ["conda-forge"]
+name = "proportions"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+r-base = "4.3.*"
+r-tidyverse = ">=2.0.0,<3"
