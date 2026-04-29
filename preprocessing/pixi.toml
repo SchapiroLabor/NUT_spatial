@@ -1,0 +1,23 @@
+[workspace]
+authors = ["jawadad <alaaedeenjawad@gmail.com>"]
+channels = ["conda-forge"]
+name = "preprocessing"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.10.*"
+ipykernel = ">=7.2.0,<8"
+pandas = ">=2.3.3,<3"
+numpy = ">=2.2.6,<3"
+natsort = ">=8.4.0,<9"
+yaml = ">=0.2.5,<0.3"
+matplotlib = ">=3.10.9,<4"
+seaborn = ">=0.13.2,<0.14"
+
+[pypi-dependencies]
+scikit-image = ">=0.25.2, <0.26"
+scanpy = ">=1.11.5, <2"
+pyyaml = ">=6.0.3, <7"
