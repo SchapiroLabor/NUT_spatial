@@ -1,0 +1,29 @@
+[workspace]
+authors = ["jawadad <alaaedeenjawad@gmail.com>"]
+channels = ["conda-forge"]
+name = "tumor_contour"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.10.*"
+scanpy = ">=1.11.5,<2"
+anndata = ">=0.11.4,<0.12"
+matplotlib = ">=3.10.9,<4"
+seaborn = ">=0.13.2,<0.14"
+scikit-image = ">=0.25.2,<0.26"
+statsmodels = ">=0.14.6,<0.15"
+scipy = ">=1.15.2,<2"
+numpy = ">=1.18.5,<2.0.0"
+pandas = ">=2.3.3,<3"
+pathlib = ">=1.0.1,<2"
+yaml = ">=0.2.5,<0.3"
+tqdm = ">=4.67.3,<5"
+ipykernel = ">=7.2.0,<8"
+setuptools = ">=69.5.1,<70"
+
+[pypi-dependencies]
+pyyaml = ">=6.0.3, <7"
+scimap = "==0.18.1"
