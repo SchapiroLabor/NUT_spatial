@@ -4,6 +4,7 @@ channels = ["conda-forge", "bioconda"]
 name = "figures"
 platforms = ["osx-arm64"]
 version = "0.1.0"
+members = ["supplementary"] 
 
 [tasks]
 
