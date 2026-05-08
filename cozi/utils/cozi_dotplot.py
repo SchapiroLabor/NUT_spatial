@@ -28,6 +28,7 @@ def cozi_dotplot_facet_split(
     survival_col="survival_time_months",
     tumor_site_col="tumor_site",
     survival_ylim=None,
+    surv_height=0.18,
     show_legend=True,
     site_width_ratios=None,
     title_fontsize=15,
@@ -114,7 +115,6 @@ def cozi_dotplot_facet_split(
     # Outer grid: (n_groups dotplot rows + 1 survival row) × (n_sites + 1 colorbar)
     # Height ratios: each group proportional to its pair count, then survival
     dot_heights    = [gs / total_pairs for gs in group_sizes]   # relative
-    surv_height    = 0.18                                        # fraction of total
     dot_total      = 1 - surv_height
     height_ratios  = [gs * dot_total for gs in dot_heights] + [surv_height]
 
