@@ -1,0 +1,20 @@
+[workspace]
+authors = ["jawadad <alaaedeenjawad@gmail.com>"]
+channels = ["conda-forge"]
+name = "napari"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "==3.11"
+ipykernel = ">=6.0.0,<8"
+napari = ">=0.5.0"
+dask = ">=2024.1.0"
+dask-image = "*"
+tifffile = "*"
+numpy = ">=1.26.4,<2"
+
+[pypi-dependencies]
+pyqt5 = ">=5.15,<6"
