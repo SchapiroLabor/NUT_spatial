@@ -8,13 +8,12 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-python = "==3.11"
-ipykernel = ">=6.0.0,<8"
-napari = ">=0.5.0"
-dask = ">=2024.1.0"
-dask-image = "*"
-tifffile = "*"
-numpy = ">=1.26.4,<2"
+python = "==3.10"
+ipykernel = ">=7.3.0,<8"
+jupyter = ">=1.1.1,<2"
+setuptools = "<82"
 
 [pypi-dependencies]
-pyqt5 = ">=5.15,<6"
+scimap = { version = ">=2.3.6, <3", extras = ["napari"] }
+anndata = ">=0.10.9, <0.11"
+tifffile = ">=2023.12.9, <2024"

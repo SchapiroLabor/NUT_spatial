@@ -23,7 +23,10 @@ yaml = ">=0.2.5,<0.3"
 tqdm = ">=4.67.3,<5"
 ipykernel = ">=7.2.0,<8"
 setuptools = ">=69.5.1,<70"
+squidpy = ">=1.6.5,<2"
+napari = ">=0.4.3,<0.5"
+pyqt = ">=5.15.11,<6"
 
 [pypi-dependencies]
 pyyaml = ">=6.0.3, <7"
-scimap = "==0.18.1"
+cellcharter = ">=0.3.5, <0.4"
