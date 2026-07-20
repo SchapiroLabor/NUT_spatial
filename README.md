@@ -7,9 +7,10 @@ This repository consists of the preprocessing and downstream analysis scripts of
 
 This is, to our knowledge, the first spatial immune profiling study of NUT carcinoma. Using a 72-marker MICS panel across a 13-patient FFPE cohort, we characterize the tumor immune microenvironment (TIME), with a focus on:
 
-- Myeloid cell composition and MDSC (myeloid-derived suppressor cell) biology
-- Spatial niche organization (including first-reported TLS-like structures in NC)
-- MDSC–CD8⁺ T cell spatial co-localization and its association with patient survival
+- Immune cell composition and the immunosupressive phenotype
+- Spatial niche organization (including first-reported TLS-like structures in NC) 
+- MDSC–CD8⁺ T cell spatial neighor preference 
+- The association of the spatial and non-spatial features with clinical outcome
 
 ## Data
 
@@ -25,7 +26,7 @@ If you have any data-related questions, please contact the corresponding authors
 
 ## Environment
 
-Analysis environments are managed with [pixi](https://pixi.sh), combining Python  and R (tidyverse, ggplot2, ComplexHeatmap, survminer, ggbeeswarm) dependencies. Each directory contains a separate pixi workspace member with its own environment for analysis or figure rendering
+Analysis environments are managed with [pixi](https://pixi.sh), combining Python  and R. Each directory contains a separate pixi workspace member with its own environment for analysis or figure rendering
 
 ```bash
 pixi install
