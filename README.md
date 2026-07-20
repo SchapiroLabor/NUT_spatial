@@ -70,10 +70,10 @@ Do not change folder names inside the scripts themselves — only the paths in `
 The analysis broadly follows this order:
 
 1. **`preprocessing/`** — QC, marker normalization, construction of the unified `AnnData` object
-2. **`proportions/`** — Cell type composition profiling (CLR transformation, two-stage ROI → patient aggregation)
-3. **`niches_clustering/`** — Spatial neighborhood clustering and biological niche annotation (e.g. Granulocytic, TLS-like, Immunosuppressive myeloid, Myofibroblast, Vascular/stromal)
-4. **`spatial_distance/`** — Nearest-neighbor distances and tumor contour distance analyses
-5. **`cozi/`** — Neighborhood enrichment scoring (NEP) and MDSC–CD8⁺ T cell spatial co-localization via Delaunay triangulation
+2. **`proportions/`** — Cell type composition profiling (two-stage ROI → patient aggregation)
+3. **`niches_clustering/`** — Spatial neighborhood clustering and biological neighborhood annotation 
+4. **`spatial_distance/`** — Distance and tumor contour distance analyses
+5. **`cozi/`** — Neighbor preference score using COZIpy (NEP)
 6. **`survival_analysis/`** — Cox regression and Kaplan-Meier analyses linking spatial/compositional features to patient outcomes
 7. **`figures/`** — Assembly of all manuscript and supplementary figures
 
