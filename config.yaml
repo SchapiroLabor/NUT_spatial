@@ -1,10 +1,27 @@
 # General settings
-project_name: NMC_spatial_analysis
+project_name: NUT_spatial_analysis
 version: 0.1
 
 # Directory paths
-raw_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/raw'
+#MACS iQ output dir (not complete raw data), including the csv tables
+raw_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/raw' 
+# Metadata dir includes the patient_information and antibody info
 metadata_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/metadata'
+#preprocessed output as by the preprocessing scripts, e.g. per ROI adata
 preprocessed_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/preprocessed'
+#main results folder
 results_dir : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results'
-
+#figure 1
+figure_1 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_1'
+#figure 2
+figure_2 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_2'
+#figure 3
+figure_3 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_3'
+#figure 4
+figure_4 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_4'
+#figure 5
+figure_5 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_5'
+#figure 6
+figure_6 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_6'
+#figure 7
+figure_7 : '/Users/jawadalaaedeen/Desktop/PhD/NMC/results/figure_7'
