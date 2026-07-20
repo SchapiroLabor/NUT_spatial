@@ -12,6 +12,9 @@ This is, to our knowledge, the first spatial immune profiling study of NUT carci
 - MDSC–CD8⁺ T cell spatial neighor preference 
 - The association of the spatial and non-spatial features with clinical outcome
 
+
+!["Profiling NUT Carcinoma Workflow and Overview"](Figure_1.png)
+
 ## Data
 
 Relevant data is deposited to [TBD]: [TBD]
