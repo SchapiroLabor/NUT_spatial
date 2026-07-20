@@ -24,6 +24,20 @@ This includes:
 
 If you have any data-related questions, please contact the corresponding authors for access.
 
+
+## Reproducing the analysis
+
+In order to reproduce the analysis, please copy this repo to your local machine and follow the environment and configuration instructions. 
+
+```bash
+git clone https://github.com/SchapiroLabor/NUT_spatial
+```
+
+Make sure you have [git](https://git-scm.com/install/) installed on your machine
+
+You can also find below the order of the scripts.
+Paper figures are generated in **`figures/`**
+
 ## Environment
 
 Analysis environments are managed with [pixi](https://pixi.sh), combining Python  and R. Each directory contains a separate pixi workspace member with its own environment for analysis or figure rendering
@@ -32,10 +46,24 @@ Analysis environments are managed with [pixi](https://pixi.sh), combining Python
 pixi install
 ```
 
-## Processing workflow
+## Configuration
 
-All paths need to be adjusted to the github repo and locally stored files
+All directory paths used across the pipeline (both Python and R scripts) are centralized in `config.yaml` at the repo root. Before running any part of the pipeline, **edit the paths in `config.yaml` to match your local machine or server** — no paths should be hardcoded elsewhere in the scripts.
 
+```yaml
+raw_dir: '/path/to/your/raw' #contain preprocessed macs iq data but not fully preprocessed
+metadata_dir: '/path/to/your/metadata' #contains metadata
+preprocessed_dir: '/path/to/your/preprocessed' # contains preprocessed data per ROI
+results_dir: '/path/to/your/results' #results_dir contains anndata objects, generated tables, and figures folders
+figure_1: "/path/to/your/results/figure_1" # contains figures 
+```
+
+Both the Python and R scripts read this same file, so you only need to update it in one place:
+
+- **Python:** loaded via `yaml.safe_load(open("config.yaml"))`
+- **R:** loaded via `yaml::read_yaml("config.yaml")`
+
+Do not change folder names inside the scripts themselves — only the paths in `config.yaml` need to be adjusted to your setup.
 
 ## Pipeline
 

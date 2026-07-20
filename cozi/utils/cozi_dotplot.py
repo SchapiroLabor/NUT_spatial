@@ -2,6 +2,7 @@
 ###COZI DOTPLOT###
 ####################
 #Special dotplot that plots cozi scores
+##special thanks to Chiara Schiller for the support
 
 import numpy as np
 import pandas as pd
