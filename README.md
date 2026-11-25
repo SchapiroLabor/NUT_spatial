@@ -36,7 +36,7 @@ Paper figures are generated in **`figures/`**
 
 ## System requirements
 
-- **Operating system:** macOS (Apple Silicon, `osx-arm64`). The analysis was developed and tested on macOS with an Apple M-series chip. Other platforms (e.g. `linux-64`) are not currently included in the lock files.
+- **Operating system:** macOS (Apple Silicon, `osx-arm64`). The analysis was developed and tested on macOS with an Apple M-series chip. 
 - **Hardware:** No non-standard hardware is required. A standard desktop or laptop is sufficient; ≥16 GB RAM is recommended for loading the full AnnData object and image-based analyses.
 - **Software:** [git](https://git-scm.com/install/) and [pixi](https://pixi.sh). All other dependencies (Python, R and packages) are installed automatically by pixi.
 
