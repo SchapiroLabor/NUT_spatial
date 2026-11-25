@@ -96,6 +96,8 @@ The analysis broadly follows this order:
 6. **`survival_analysis/`** — Cox regression and Kaplan-Meier analyses linking spatial/compositional features to patient outcomes
 7. **`figures/`** — Assembly of all manuscript and supplementary figures
 
+Typical install time: ~5–10 min per module
+
 ## Manuscript
 
 ["TBD"]
