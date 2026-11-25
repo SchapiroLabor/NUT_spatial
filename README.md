@@ -17,16 +17,9 @@ This is, to our knowledge, the first spatial immune profiling study of NUT carci
 
 ## Data
 
-Relevant data is deposited to [TBD]: [TBD]
-
-This includes:
-
-- pre-processed images, as of the output of MACS iQ viewer
-- the phenotyping labels, as of the output of the phenotyping process
-- Processed single-cell table as .h5ad and .csv files
+Required MACSiQ-preprocessed data, metadata, and Anndata object that can be used for this analysis is deposited to Zenodo: https://doi.org/10.5281/zenodo.22806982 
 
 If you have any data-related questions, please contact the corresponding authors for access.
-
 
 ## Reproducing the analysis
 
@@ -43,7 +36,7 @@ Paper figures are generated in **`figures/`**
 
 ## Environment
 
-Analysis environments are managed with [pixi](https://pixi.sh), combining Python  and R. Each directory contains a separate pixi workspace member with its own environment for analysis or figure rendering
+Analysis environments are managed with [pixi](https://pixi.sh), combining Python  and R. Each directory contains a separate pixi workspace member with its own environment for analysis or figure rendering. Please refer to each pixi file to check the versions of the softwares used in each analysis.
 
 ```bash
 pixi install
